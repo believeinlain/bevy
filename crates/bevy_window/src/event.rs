@@ -110,6 +110,8 @@ pub struct CursorMoved {
     pub window: Entity,
     /// The cursor position in logical pixels.
     pub position: Vec2,
+    /// Number of previous Window events received this frame
+    pub previous_events: usize,
 }
 
 /// An event that is sent whenever the user's cursor enters a window.
@@ -136,6 +138,8 @@ pub struct CursorEntered {
 pub struct CursorLeft {
     /// Window that the cursor left.
     pub window: Entity,
+    /// Number of previous Window events received this frame
+    pub previous_events: usize,
 }
 
 /// An event that is sent whenever a window receives a character from the OS or underlying system.

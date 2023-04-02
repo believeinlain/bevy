@@ -325,6 +325,8 @@ pub fn winit_runner(mut app: App) {
         ResMut<CanvasParentResizeEventChannel>,
     )> = SystemState::from_world(&mut app.world);
 
+    let mut previous_events = 0;
+
     let event_handler = move |event: Event<()>,
                               event_loop: &EventLoopWindowTarget<()>,
                               control_flow: &mut ControlFlow| {
@@ -360,6 +362,8 @@ pub fn winit_runner(mut app: App) {
                 // The low_power_event state and timeout must be reset at the start of every frame.
                 winit_state.low_power_event = false;
                 winit_state.timeout_reached = auto_timeout_reached || manual_timeout_reached;
+
+                previous_events = 0;
             }
             event::Event::WindowEvent {
                 event,
@@ -446,6 +450,7 @@ pub fn winit_runner(mut app: App) {
                             window: window_entity,
                             position: (physical_position / window.resolution.scale_factor())
                                 .as_vec2(),
+                                previous_events,
                         });
                     }
                     WindowEvent::CursorEntered { .. } => {
@@ -458,6 +463,7 @@ pub fn winit_runner(mut app: App) {
 
                         cursor_events.cursor_left.send(CursorLeft {
                             window: window_entity,
+                            previous_events,
                         });
                     }
                     WindowEvent::MouseInput { state, button, .. } => {
@@ -606,6 +612,8 @@ pub fn winit_runner(mut app: App) {
                 if window.is_changed() {
                     cache.window = window.clone();
                 }
+
+                previous_events += 1;
             }
             event::Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion { delta: (x, y) },
@@ -689,6 +697,8 @@ pub fn winit_runner(mut app: App) {
                 }
 
                 winit_state.redraw_request_sent = redraw;
+
+                previous_events = 0;
             }
 
             _ => (),
@@ -735,6 +745,7 @@ pub fn winit_runner(mut app: App) {
             create_window_system_state.apply(&mut app.world);
         }
     };
+
 
     // If true, returns control from Winit back to the main Bevy loop
     if return_from_run {
